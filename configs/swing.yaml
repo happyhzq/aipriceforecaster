@@ -1,0 +1,48 @@
+#短期（1–4 小时）：示例以 5m bar 为例，horizon_bars=24 即 2 小时
+
+data:
+  input_csv: examples/sample_data.csv # 替换为你的多资产CSV
+  timestamp_col: timestamp
+  ticker_col: ticker
+  ohlcv_cols: [open, high, low, close, volume]
+  freq: 5min
+  train_test_split_date: 2024-06-01 00:00:00 # 示例
+
+features:
+  rsi_periods: [14]
+  macd: [12, 26, 9]
+  sma_windows: [5, 10, 20, 60]
+  ema_windows: [5, 10, 20, 60]
+  vol_windows: [10, 20, 60]
+  bb_window: 20
+  bb_k: 2.0
+  parkinson_window: 20
+  cross_asset: [] # 可填外部品种close列路径或预处理结果
+
+label:
+  horizon_bars: horizon_bars: 234 # ~1周（按5m）
+  label_type: "binary" # binary|trinary|regression
+  threshold: 0.0005 # 仅用于trinary或过滤
+
+train:
+  model_family: "ensemble" # lstm|transformer|xgboost|ensemble
+  seed: 123
+  batch_size: 256
+  epochs: 20
+  lr: 1e-3
+  optimizer: adamw
+  l2: 1e-4
+  device: "cuda"
+  ddp: false
+  num_workers: 4
+  early_stop_patience: 5
+  class_weight: 1.0
+  valid_metric: "acc" # acc|f1|auc|rmse|mae
+  out_dir: "out/swing"
+
+backtest:
+  side: "longshort" # longonly|longshort
+  trans_cost_bp: 1.0 # 单边基点
+  slippage_bp: 0.5
+  threshold_prob: 0.55 # 入场阈值
+  vol_target: 0.02 # 日化目标波动
