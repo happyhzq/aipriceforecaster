@@ -43,75 +43,25 @@ def train_torch_model(model, X_train, y_train, w_train, X_valid, y_valid, task="
     patience = int(cfg["train"].get("early_stop_patience", 5))
     bad = 0
     
+    '''
+    #单元测试代码：
+    # 在 model.to(device) 后加入检查
+    print("Model device after to:", next(model.parameters()).device)
+    # 快速单次前向样例检查（防止第一步就卡）
+    with torch.no_grad():
+        small_x = Xtr[:min(8, len(Xtr))]
+        try:
+            _ = model(small_x.to(next(model.parameters()).device))
+            print("quick forward check passed")
+        except Exception as e:
+            print("quick forward check failed:", repr(e))
+            raise
+    '''
+
     for ep in range(1, epochs+1):
         model.train()
         loss_sum, w_sum = 0.0, 0.0
-        '''
-        # 限制线程避免 BLAS/OMP 线程干扰（调试时先开启）
-        torch.set_num_threads(1)
-        torch.set_num_interop_threads(1)
-        os.environ.setdefault("OMP_NUM_THREADS", "1")
-        os.environ.setdefault("MKL_NUM_THREADS", "1")
 
-        it = iter(train_dl)
-        print("DEBUG: about to fetch first batch via next(it)")
-        t0 = time.time()
-        try:
-            xb, yb, wb = next(it)
-            t1 = time.time()
-            print(f"DEBUG: fetched batch in {t1-t0:.3f}s")
-            print("xb shape, dtype, device:", getattr(xb, "shape", None), xb.dtype, xb.device)
-            print("yb shape, dtype, device:", getattr(yb, "shape", None), yb.dtype, yb.device)
-            print("wb shape, dtype, device:", getattr(wb, "shape", None), wb.dtype, wb.device)
-
-            # 1) test .float() and .to(device) separately with prints
-            t0 = time.time()
-            xb2 = xb.to(device)
-            t1 = time.time()
-            print(f"DEBUG: xb.to(device) finished in {t1-t0:.3f}s, xb2 device: {xb2.device}")
-
-            t0 = time.time()
-            yb2 = yb.float().to(device)
-            t1 = time.time()
-            print(f"DEBUG: yb.float().to(device) finished in {t1-t0:.3f}s, yb2 device: {yb2.device}")
-
-            t0 = time.time()
-            wb2 = wb.to(device)
-            t1 = time.time()
-            print(f"DEBUG: wb.to(device) finished in {t1-t0:.3f}s, wb2 device: {wb2.device}")
-
-            # 2) inspect where model lives
-            try:
-                p = next(model.parameters())
-                print("model param device:", p.device)
-            except StopIteration:
-                print("DEBUG: model has no parameters (?)")
-
-            # 3) do a single forward with timing and catch exceptions
-            try:
-                t0 = time.time()
-                out = model(xb2)
-                t1 = time.time()
-                print(f"DEBUG: forward finished in {t1-t0:.3f}s, out shape: {getattr(out, 'shape', None)}")
-            except Exception as e:
-                print("ERROR during forward:", repr(e))
-                raise
-
-            # 4) compute loss (just to test)
-            try:
-                out_s = out.squeeze(-1)
-                loss_term = crit(out_s, yb2 if task!="binary" else yb2) * wb2
-                print("DEBUG: loss_term shape:", loss_term.shape)
-                lmean = loss_term.mean()
-                print("DEBUG: mean loss computed:", float(lmean))
-            except Exception as e:
-                print("ERROR during loss computation:", repr(e))
-                raise
-
-        except Exception as e:
-            print("ERROR fetching first batch or iterating:", repr(e))
-            raise
-        '''
         for xb, yb, wb in train_dl:
             xb = xb.to(device); yb = yb.float().to(device); wb = wb.to(device)
             out = model(xb).squeeze(-1)
@@ -119,13 +69,32 @@ def train_torch_model(model, X_train, y_train, w_train, X_valid, y_valid, task="
             loss = loss.mean()
             opt.zero_grad()
             loss.backward()
+            '''
+            #测试代码：检查损失/梯度是否在更新（可在训练循环打印梯度范数）
+            #在训练循环里 loss.backward() 之后、opt.step() 之前插入：
+            total_norm = 0.0
+            for p in model.parameters():
+                if p.grad is None: continue
+                param_norm = p.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+            total_norm = total_norm ** 0.5
+            print(f"grad_norm: {total_norm:.6f}")
+            # 也可打印参数范数
+            param_norm = 0.0
+            for p in model.parameters():
+                param_norm += float(p.data.norm(2).item()**2)
+            print("param_norm:", param_norm**0.5)
+            #测试代码结束
+            '''
             opt.step()
             loss_sum += loss.item() * len(xb)
             w_sum += len(xb)
         # validation
         model.eval()
 
+        '''
         #original code
+        #原始代码报错np.exp
         with torch.no_grad():
             ov = model(Xva.to(device)).squeeze(-1).cpu().numpy()
         
@@ -136,24 +105,52 @@ def train_torch_model(model, X_train, y_train, w_train, X_valid, y_valid, task="
         else:
             rmse = ((ov - y_valid) ** 2).mean() ** 0.5
             metric = -rmse  # 越大越好
-        
         '''
-        #修改后的代码：
+        #newcode:
+        all_preds = []
         with torch.no_grad():
-            ov_tensor = model(Xva.to(device)).squeeze(-1)      # tensor on device (cpu in your case)
-            prob = torch.sigmoid(ov_tensor).cpu().numpy()      # numpy array of probabilities
+            for xb_v, _ in valid_dl:
+                xb_v = xb_v.to(device)
+                out_v = model(xb_v).squeeze(-1)
+                if task == "binary":
+                    # compute probabilities with torch.sigmoid (safe)
+                    probs_v = torch.sigmoid(out_v)
+                    all_preds.append(probs_v.cpu().numpy())
+                else:
+                    all_preds.append(out_v.cpu().numpy())
+        if len(all_preds) > 0:
+            ov = np.concatenate(all_preds, axis=0)
+            '''
+            #单元测试代码：
+            #测试代码：验证预测是否恒定（在 train_torch_model 验证后打印 ov 分布）在 train_torch_model 的验证段（我们之前改好的那段）末尾，加入：
+            # after ov = np.concatenate(all_preds, axis=0)
+            print("VALIDATION: ov shape", ov.shape)
+            print("ov sample:", ov[:10])
+            print("ov mean/std:", np.nanmean(ov), np.nanstd(ov))
+            # 如果二分类，输出 pred distribution:
+            if task == "binary":
+                preds = (ov >= 0.5).astype(int)
+                vals, cnts = np.unique(preds, return_counts=True)
+                print("pred dist:", dict(zip(vals.tolist(), cnts.tolist())))
+                # also compare to y_valid
+                yv = np.asarray(y_valid).ravel()
+                if len(yv) == len(preds):
+                    print("accuracy check:", (preds == yv).mean())
+                else:
+                    print("WARNING: y_valid length mismatch", len(yv), len(preds))
+            '''
+
+        else:
+            ov = np.array([])
 
         if task == "binary":
+            prob = ov  # ov already probabilities in [0,1]
             pred = (prob >= 0.5).astype(int)
-            # 强制把 y_valid 转成标准 numpy ndarray（避免自定义包装器的 __eq__ / __array_ufunc__ 等）
-            yv = np.asarray(y_valid)
-            # 使用 numpy 的等价函数并取 float 返回，避免调用可被覆盖的 .mean() 方法
-            metric = float(np.mean(np.equal(pred, yv)))
+            metric = (pred == y_valid).mean()
         else:
-            ov = ov_tensor.cpu().numpy().astype(np.float32)
+            # ov are raw predictions
             rmse = ((ov - y_valid) ** 2).mean() ** 0.5
-            metric = -rmse
-        '''
+            metric = -rmse  # 越大越好
 
         logger.info(f"epoch {ep}: train_loss={loss_sum/max(w_sum,1):.6f} valid_metric={metric:.6f}")
         if metric > best_metric:

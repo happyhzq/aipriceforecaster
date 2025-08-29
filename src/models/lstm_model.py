@@ -16,3 +16,14 @@ class LSTMForecaster(nn.Module):
         _, (h, _) = self.lstm(x)
         h = h[-1]  # [B, H]
         return self.head(h)  # [B, out_dim]
+    '''#尝试新代码：
+    def forward(self, x):
+        out, (h, _) = self.lstm(x)  # out: [B, T, H]
+        # 方法1: 取最后时间步
+        # last = out[:, -1, :]  # [B, H]
+
+        # 方法2: 平均池化所有时间步
+        pooled = out.mean(dim=1)  # [B, H]
+
+        return self.head(pooled)
+    '''

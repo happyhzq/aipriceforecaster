@@ -1,0 +1,15 @@
+numpy
+pandas
+pyyaml
+scikit-learn
+xgboost
+torch>=1.12
+tqdm
+yfinance
+requests
+optuna
+fastapi
+uvicorn[standard]
+python-dotenv
+python-dateutil
+websocket-client
