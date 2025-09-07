@@ -1,3 +1,9 @@
+#为了解决线程冲突，在开始添加线程控制：
+import os, torch
+os.environ.setdefault("CUDA_LAUNCH_BLOCKING", "1")   # 若用 GPU，可帮助显式报错（对 CPU 无害）
+os.environ.setdefault("OMP_NUM_THREADS", "1")        # 降低 OpenMP 线程，避免多进程死锁
+torch.set_num_threads(1)  
+
 import os, argparse
 import numpy as np
 import pandas as pd
@@ -48,19 +54,42 @@ def run(cfg_path: str):
         lstm = LSTMForecaster(input_dim=len(feature_cols), out_dim=1)
     else:
         lstm = LSTMForecaster(input_dim=len(feature_cols), out_dim=1)
+
     lstm = train_torch_model(lstm, Xtr_seq, (ytr_seq if task!="binary" else ytr_seq.astype("float32")), wtr_seq, Xva_seq, (yva_seq if task!="binary" else yva_seq.astype("float32")), task=task, cfg=cfg)
 
     import torch, numpy as np
+    '''
+    #原始代码：
     with torch.no_grad():
         logits = lstm(torch.tensor(Xva_seq, dtype=torch.float32)).squeeze(-1).numpy()
     prob_lstm = 1/(1+np.exp(-logits)) if task=="binary" else logits
+    '''
+    #修改后的代码：
+
+    with torch.no_grad():
+        logits_tensor = lstm(torch.tensor(Xva_seq, dtype=torch.float32)).squeeze(-1)  # torch.Tensor
+
+    if task == "binary":
+        prob_lstm = torch.sigmoid(logits_tensor).cpu().numpy()
+    else:
+        prob_lstm = logits_tensor.cpu().numpy()
 
     # 3) Transformer 序列模型
     trans = TransformerForecaster(input_dim=len(feature_cols), out_dim=1)
     trans = train_torch_model(trans, Xtr_seq, (ytr_seq if task!="binary" else ytr_seq.astype("float32")), wtr_seq, Xva_seq, (yva_seq if task!="binary" else yva_seq.astype("float32")), task=task, cfg=cfg)
+    '''
+    #原始代码：
     with torch.no_grad():
         logits_t = trans(torch.tensor(Xva_seq, dtype=torch.float32)).squeeze(-1).numpy()
     prob_trans = 1/(1+np.exp(-logits_t)) if task=="binary" else logits_t
+    '''
+    #修改后的代码：
+    with torch.no_grad():
+        logits_t2 = trans(torch.tensor(Xva_seq, dtype=torch.float32)).squeeze(-1)
+    if task == "binary":
+        prob_trans = torch.sigmoid(logits_t2).cpu().numpy()
+    else:
+        prob_trans = logits_t2.cpu().numpy()
 
     # 4) Stacking 集成
     ens = StackingEnsemble(task=task)

@@ -1,12 +1,12 @@
 #长期（3–7 小时）：示例以 5m bar 为例，horizon_bars=234 即 1 周
 
 data:
-  input_csv: examples/sample_data.csv # 替换为你的多资产CSV
-  timestamp_col: timestamp
+  input_csv: examples/rb0.csv # 替换为你的多资产CSV
+  timestamp_col: datetime
   ticker_col: ticker
   ohlcv_cols: [open, high, low, close, volume]
   freq: 5min
-  train_test_split_date: 2024-06-01 00:00:00 # 示例
+  train_test_split_date: 2025-09-03 15:00:00 # 示例
 
 features:
   rsi_periods: [14]
@@ -32,7 +32,7 @@ train:
   lr: 1e-3
   optimizer: adamw
   l2: 1e-4
-  device: "cuda"
+  device: "cpu" #or cuda
   ddp: false
   num_workers: 4
   early_stop_patience: 5
