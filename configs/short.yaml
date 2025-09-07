@@ -6,7 +6,7 @@ data:
   ticker_col: ticker
   ohlcv_cols: [open, high, low, close, volume]
   freq: 1min
-  train_test_split_date: 2025-08-26 10:30:00 # 示例
+  train_test_split_date: 2025-09-03 15:00:00 # 示例
 
 features:
   rsi_periods: [14]
@@ -28,14 +28,14 @@ train:
   model_family: "ensemble" # lstm|transformer|xgboost|ensemble
   seed: 123
   batch_size: 256
-  epochs: 5
+  epochs: 20
   lr: 1e-3
   optimizer: adamw
   l2: 1e-4
   device: "cpu"
   ddp: false
   num_workers: 6
-  early_stop_patience: 3
+  early_stop_patience: 20
   class_weight: 1.0
   valid_metric: "acc" # acc|f1|auc|rmse|mae
   out_dir: "out/short"

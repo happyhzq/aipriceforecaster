@@ -28,3 +28,4 @@ python-dotenv
 #data
 yfinance
 requests
+akshare
