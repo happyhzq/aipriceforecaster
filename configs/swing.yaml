@@ -1,4 +1,4 @@
-#短期（1–4 小时）：示例以 5m bar 为例，horizon_bars=24 即 2 小时
+#长期（3–7 小时）：示例以 5m bar 为例，horizon_bars=234 即 1 周
 
 data:
   input_csv: examples/sample_data.csv # 替换为你的多资产CSV

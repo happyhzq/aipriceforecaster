@@ -1,4 +1,4 @@
-
+# Finnhub REST & WebSocket skeleton. Requires FINNHUB_API_KEY
 import os, requests, threading, websocket, json
 API = os.getenv('FINNHUB_API_KEY','')
 BASE = 'https://finnhub.io/api/v1'

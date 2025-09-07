@@ -1,3 +1,5 @@
+# Quandl / Nasdaq Data Link adapter (for futures continuous contracts CHRIS)
+# Requires NASDAQ_DATA_LINK_API_KEY (formerly Quandl)
 import os, requests, pandas as pd
 API = os.getenv('NASDAQ_DATA_LINK_API_KEY','')
 BASE = 'https://data.nasdaq.com/api/v3/datasets'

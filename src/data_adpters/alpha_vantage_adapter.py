@@ -1,3 +1,4 @@
+# Alpha Vantage adapter (REST polling, requires API key)
 import os, requests, pandas as pd
 API = os.getenv('ALPHAVANTAGE_API_KEY','')
 BASE_URL = 'https://www.alphavantage.co/query'

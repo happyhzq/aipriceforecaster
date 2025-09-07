@@ -20,7 +20,7 @@ features:
   cross_asset: [] # 可填外部品种close列路径或预处理结果
 
 label:
-  horizon_bars: 5
+  horizon_bars: 24
   label_type: "binary" # binary|trinary|regression
   threshold: 0.0005 # 仅用于trinary或过滤
 

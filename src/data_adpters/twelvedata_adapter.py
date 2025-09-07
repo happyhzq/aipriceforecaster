@@ -1,6 +1,8 @@
+# Twelve Data REST wrapper (requires TWELVEDATA_API_KEY)
 import os, requests, pandas as pd
 API = os.getenv('TWELVEDATA_API_KEY','')
 BASE = 'https://api.twelvedata.com/time_series'
+
 def fetch_intraday(symbol, interval='1min', outputsize=5000):
     if not API: raise RuntimeError('Set TWELVEDATA_API_KEY')
     params = {'symbol':symbol,'interval':interval,'outputsize':outputsize,'apikey':API}
