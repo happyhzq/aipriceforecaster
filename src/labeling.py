@@ -8,7 +8,6 @@ def make_labels(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     threshold = float(cfg["label"].get("threshold", 0.0))
     df.sort_values(["ticker", "timestamp"], inplace=True)
     g = df.groupby("ticker", group_keys=False)
-
     # future log return
     df["fwd_close"] = g["close"].shift(-H)
     df["y_reg"] = (np.log(df["fwd_close"]) - np.log(df["close"])).astype(float)
@@ -29,6 +28,7 @@ def make_labels(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
     # 删除未来不可见样本
     df = df[g.cumcount(ascending=False) > H]  # drop last H rows per ticker
+    df.to_csv("/Users/LG/tutorial/aipriceforecaster/out/short/test.csv")
     #df = df.dropna()
     df = df.dropna().reset_index(drop=True)
     return df

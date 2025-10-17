@@ -23,7 +23,7 @@ def run(cfg_path: str):
     # 读取处理好的数据
     data_csv = os.path.join(cfg["train"]["out_dir"], "dataset.csv")
     df = pd.read_csv(data_csv, parse_dates=["timestamp"])
-    feature_cols = [c for c in df.columns if c not in ("timestamp","ticker","open","high","low","close","volume","fwd_close","y_reg","y_cls","y_tri","sample_weight")]
+    feature_cols = [c for c in df.columns if c not in ("timestamp","ticker","open","high","low","close","volume","fwd_close","y_reg","y_cls","y_tri","sample_weight","insert_time","update_time","interface_id","fetch_time")]
 
     # 任务类型
     task = "binary" if cfg["label"]["label_type"] in ("binary","trinary") else "regression"

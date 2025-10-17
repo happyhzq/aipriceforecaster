@@ -1,0 +1,46 @@
+<!-- src/templates/dashboard.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>AMF - Real-time Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Real-time Predict Dashboard</h1>
+  <div id="cards">
+    {% for s in watchlist %}
+      <div style="border:1px solid #ddd;padding:10px;margin:8px;display:inline-block;" id="card-{{s}}">
+        <h3>{{s}}</h3>
+        <div>Prob: <span id="prob-{{s}}">-</span></div>
+        <div>Pred: <span id="pred-{{s}}">-</span></div>
+        <canvas id="chart-{{s}}" width="400" height="120"></canvas>
+      </div>
+    {% endfor %}
+  </div>
+  <script>
+    const watch = {{ watchlist | tojson }};
+    function pollSymbol(sym) {
+      fetch('/predict', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({symbol: sym})
+      }).then(r=>r.json()).then(j=>{
+        if(j.prob) {
+          document.getElementById('prob-'+sym).innerText = (Array.isArray(j.prob)? j.prob.slice(-1)[0] : j.prob);
+        }
+        if(j.pred_reg) {
+          document.getElementById('pred-'+sym).innerText = (Array.isArray(j.pred_reg)? j.pred_reg.slice(-1)[0] : j.pred_reg);
+        }
+      }).catch(e=>console.log('poll err',e));
+    }
+    function startPolling(){
+      for(const s of watch){
+        pollSymbol(s); // initial
+      }
+      setInterval(()=>{ for(const s of watch) pollSymbol(s); }, 60000);
+    }
+    window.onload = startPolling;
+  </script>
+</body>
+</html>

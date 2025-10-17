@@ -6,7 +6,7 @@ def _ema(series: pd.Series, span: int):
 
 def compute_tech_indicators(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     """
-    输入 df: [timestamp, ticker, open, high, low, close, volume]
+    输入 df: [timestamp, ticker, open, high, low, close, volume, hold(或有)]
     返回: 按 ticker 分组后追加特征列
     """
     df = df.copy()
@@ -73,7 +73,8 @@ def compute_tech_indicators(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     for w in [5, 10, 20, 60]:
         df[f"v_ma_{w}"] = g["volume"].apply(lambda x: x.rolling(w).mean())
         df[f"v_z_{w}"] = (df["volume"] - df[f"v_ma_{w}"]) / (df[f"v_ma_{w}"] + 1e-12)
-
+        df[f"h_ma_{w}"] = g["hold"].apply(lambda x: x.rolling(w).mean())
+        df[f"h_z_{w}"] = (df["hold"] - df[f"h_ma_{w}"]) / (df[f"h_ma_{w}"] + 1e-12)
     # 滞后特征
     for lag in [1, 2, 3, 5, 10]:
         df[f"ret_lag_{lag}"] = g["logret"].apply(lambda x: x.shift(lag))

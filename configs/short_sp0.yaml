@@ -1,0 +1,90 @@
+# 短期（1–4 小时）配置
+
+data:
+  # 数据源类型: csv | mysql | api
+  source_type: mysql  # 改为 'csv' 使用CSV文件
+  
+  # CSV配置（当source_type=csv时使用）
+  csv:
+    input_csv: examples/rb0.csv
+    timestamp_col: datetime
+    ticker_col: ticker
+    
+  # MySQL配置（当source_type=mysql时使用）
+  mysql:
+    host: 
+    port: 3306
+    user: root
+    password:   # 建议使用环境变量
+    database: akshare_data
+    charset: utf8mb4
+    table_name: raw_futures_zh_minute_sina
+    
+    # 查询参数
+    query:
+      tickers: [SP0]  # 可以查询多个品种
+      start_date: "2025-08-01 00:00:00"
+      end_date: "2025-10-13 23:59:59"
+
+
+    # 列名映射（如果数据库列名不同）
+    columns_mapping:
+      trade_datetime: timestamp
+      param_symbol: ticker
+      open_price: open  # 如果列名相同则不需要映射
+      high_price: high
+      low_price: low
+      close_price: close
+      # volume: volume
+  
+  # API配置（当source_type=api时使用）
+  api:
+    adapter: akshare  # yfinance | alpha_vantage | finnhub | twelvedata | akshare
+    symbols: [RB0]
+    interval: 1min
+    period: 30  # 天数
+  
+  # 通用配置
+  ohlcv_cols: [open, high, low, close, volume]
+  freq: 1min
+  train_test_split_date: "2025-10-10 9:30:00"
+
+features:
+  rsi_periods: [14]
+  macd: [12, 26, 9]
+  sma_windows: [5, 10, 20, 60]
+  ema_windows: [5, 10, 20, 60]
+  vol_windows: [10, 20, 60]
+  
+  bb_window: 20
+  bb_k: 2.0
+  parkinson_window: 20
+  cross_asset: []
+
+label:
+  horizon_bars: 30
+  label_type: "binary"
+  threshold: 0.0005
+
+train:
+  model_family: "ensemble"
+  seed: 123
+  batch_size: 256
+  epochs: 20
+  lr: 1e-3
+  optimizer: adamw
+  l2: 1e-4
+  device: "cpu"
+  ddp: false
+  num_workers: 0
+  early_stop_patience: 20
+  class_weight: 1.0
+  valid_metric: "acc"
+  out_dir: "out/short/SP0"
+
+backtest:
+  side: "longshort"
+  trans_cost_bp: 1.0
+  slippage_bp: 0.5
+  threshold_prob: 0.55
+  vol_target: 0.02

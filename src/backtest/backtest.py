@@ -3,7 +3,7 @@ from ..utils.config import load_config
 from ..utils.logger import get_logger
 
 def compute_vol_target_position(ret_series, target_vol=0.02, eps=1e-8):
-# 简易EWMA波动估计
+    # 简易EWMA波动估计
     lam = 0.94
     var = 0.0
     pos = []
@@ -21,6 +21,7 @@ def main(cfg_path: str, pred_file: str):
     preds = pd.read_csv(pred_file, parse_dates=["timestamp"])
 
     merged = pd.merge_asof(preds.sort_values("timestamp"), df.sort_values("timestamp"), on="timestamp", by="ticker")
+    
     # 方向：pred>=threshold_prob 做多，<=(1-threshold) 做空（若 longshort）
     thr = float(cfg["backtest"]["threshold_prob"])
     side = cfg["backtest"].get("side","longshort")
@@ -40,11 +41,66 @@ def main(cfg_path: str, pred_file: str):
     turn = np.abs(np.diff(np.r_[0.0, pos]))  # 交易换手
     net_ret = pos * merged["y_reg"].values - turn*(tc+sl)
 
-    eq = (1+net_ret).cumprod()
-    out = pd.DataFrame({"timestamp": merged["timestamp"], "ticker": merged["ticker"], "pos": pos, "net_ret": net_ret, "equity": eq})
+    # 修复：确保 eq 是 numpy array，并正确访问最后一个元素
+    eq = (1 + net_ret).cumprod()
+    
+    # 创建输出DataFrame
+    out = pd.DataFrame({
+        "timestamp": merged["timestamp"], 
+        "ticker": merged["ticker"], 
+        "pos": pos, 
+        "net_ret": net_ret, 
+        "equity": eq
+    })
+    
+    # 保存CSV
     out_csv = os.path.join(cfg["train"]["out_dir"], "bt_equity.csv")
     out.to_csv(out_csv, index=False)
-    logger.info(f"backtest saved: {out_csv} | CAGR approx={(eq.iloc[-1]**(252/len(eq))-1):.2%}, Sharpe~={np.mean(net_ret)/ (np.std(net_ret)+1e-9) * np.sqrt(252):.2f}")
+    
+    # 修复：使用 numpy array 的正确语法计算指标
+    final_equity = eq[-1] if len(eq) > 0 else 1.0
+    n_periods = len(eq) if len(eq) > 0 else 1
+    
+    # 计算CAGR（年化收益率）
+    # 假设一年252个交易日，每天78个5分钟bar（6.5小时）
+    periods_per_year = 252 * 78  # 根据你的时间频率调整
+    years = n_periods / periods_per_year if periods_per_year > 0 else 1
+    cagr = (final_equity ** (1/max(years, 0.001)) - 1) if years > 0 else 0
+    
+    # 计算夏普比率
+    # 根据数据频率调整年化因子
+    if len(net_ret) > 1:
+        mean_ret = np.mean(net_ret)
+        std_ret = np.std(net_ret)
+        # 5分钟数据的年化因子：sqrt(252天 * 78个5分钟/天)
+        annualization_factor = np.sqrt(periods_per_year)
+        sharpe = mean_ret / (std_ret + 1e-9) * annualization_factor
+    else:
+        sharpe = 0.0
+    
+    # 添加更多回测统计
+    if len(net_ret) > 0:
+        # 最大回撤
+        cumulative_returns = (1 + pd.Series(net_ret)).cumprod()
+        running_max = cumulative_returns.expanding().max()
+        drawdown = (cumulative_returns - running_max) / running_max
+        max_drawdown = drawdown.min()
+        
+        # 胜率
+        win_rate = (net_ret > 0).sum() / len(net_ret)
+        
+        logger.info(f"Backtest Results:")
+        logger.info(f"  File saved: {out_csv}")
+        logger.info(f"  Total periods: {n_periods}")
+        logger.info(f"  Final equity: {final_equity:.4f}")
+        logger.info(f"  CAGR: {cagr:.2%}")
+        logger.info(f"  Sharpe Ratio: {sharpe:.2f}")
+        logger.info(f"  Max Drawdown: {max_drawdown:.2%}")
+        logger.info(f"  Win Rate: {win_rate:.2%}")
+        logger.info(f"  Mean Return: {mean_ret:.4%}")
+        logger.info(f"  Std Return: {std_ret:.4%}")
+    else:
+        logger.warning("No trades generated in backtest")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
