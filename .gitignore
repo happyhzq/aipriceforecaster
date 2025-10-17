@@ -1,0 +1,23 @@
+# 忽略所有 PyTorch 模型权重文件
+*.pt
+
+# 忽略所有 CSV 数据文件
+#*.csv
+
+# 忽略所有 Jupyter Notebook 检查点
+.ipynb_checkpoints/
+
+# 忽略所有 Python 编译/缓存文件
+__pycache__/
+*.pyc
+# 也可以只忽略特定目录下的缓存
+src/backtest/__pycache__/
+src/data_adapters/__pycache__/
+# ... 等等
+
+# 忽略输出目录中的所有文件
+# 建议：如果 out/ 目录只包含生成的文件，可以忽略整个目录
+out/
+
+# 忽略特定的文件
+futurepricegeter.ipynb
