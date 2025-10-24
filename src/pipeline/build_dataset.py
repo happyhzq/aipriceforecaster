@@ -66,7 +66,7 @@ def load_data_from_source(cfg: dict, logger) -> pd.DataFrame:
             df = adapter.fetch_multiple_tickers(
                 table_name=table_name,
                 tickers=tickers,
-                freqs=freqs,
+                freq=freqs,
                 start_date=start_date,
                 end_date=end_date,
                 columns_mapping=columns_mapping
@@ -160,7 +160,8 @@ def main(cfg_path: str):
     logger.info(f"  Features: {len([c for c in df.columns if c.startswith(('vol_', 'sma_', 'ema_', 'rsi_', 'macd', 'bb_', 'pvol', 'v_', 'ret_lag_'))])}")
     logger.info(f"  Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
     logger.info(f"  Tickers: {df['ticker'].unique().tolist()}")
-    logger.info(f"  Freq: {df['freq'].unique().tolist()}")
+    if 'freq' in df.columns:
+        logger.info(f"  Freq: {df['freq'].unique().tolist()}")
     
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

@@ -1,0 +1,113 @@
+# configs/server.yaml
+server:
+  host: "0.0.0.0"
+  port: 8000
+  refresh_sec: 60          # 实时抓取频率（秒）
+  window: 64               # 推理所需历史窗口长度（bars）
+  device: "cpu"         # 或 "cpu", "cuda:0" 
+
+data:
+  source: "akshare"        # 目前固定 akshare
+  period: "1"              # 1,5,15,30,60 分钟
+  adjust: ""               # A股分时复权: "", "qfq", "hfq"
+  feature_config: "configs/mid_sp0_5.yaml"   # 复用项目特征工程配置
+
+symbols:
+  - name: "SP0"           # 期货主力连续（示例：纸浆： SP0--这个英文必须大写）
+    asset_class: "future"
+    ensemble:
+      - type: "hybrid"
+        weight: 0.4
+        ckpt: "out/mid/models/SP0_hybrid_best.pt"
+        meta: "out/mid/models/SP0_hybrid_best_meta.json"
+      - type: "lstm"
+        weight: 0.4
+        ckpt: "out/mid/models/SP0_lstm_best.pt"
+        meta: "out/mid/models/SP0_lstm_best_meta.json"
+      - type: "xgboost"
+        weight: 0.2
+        ckpt_cls: "out/mid/models/SP0_xgb_cls.json"
+        ckpt_reg: "out/mid/models/SP0_xgb_reg.json"
+        meta: "out/mid/models/SP0_xgb_meta.json"
+  - name: "SR0"           # 期货主力连续（示例：纸浆： SR0--这个英文必须大写）
+    asset_class: "future"
+    ensemble:
+      - type: "hybrid"
+        weight: 0.4
+        ckpt: "out/mid/models/SR0_hybrid_best.pt"
+        meta: "out/mid/models/SR0_hybrid_best_meta.json"
+      - type: "lstm"
+        weight: 0.4
+        ckpt: "out/mid/models/SR0_lstm_best.pt"
+        meta: "out/mid/models/SR0_lstm_best_meta.json"
+      - type: "xgboost"
+        weight: 0.2
+        ckpt_cls: "out/mid/models/SR0_xgb_cls.json"
+        ckpt_reg: "out/mid/models/SR0_xgb_reg.json"
+        meta: "out/mid/models/SR0_xgb_meta.json"
+  - name: "I0"           # 期货主力连续（示例：纸浆： I0--这个英文必须大写）
+    asset_class: "future"
+    ensemble:
+      - type: "hybrid"
+        weight: 0.4
+        ckpt: "out/mid/models/I0_hybrid_best.pt"
+        meta: "out/mid/models/I0_hybrid_best_meta.json"
+      - type: "lstm"
+        weight: 0.4
+        ckpt: "out/mid/models/I0_lstm_best.pt"
+        meta: "out/mid/models/I0_lstm_best_meta.json"
+      - type: "xgboost"
+        weight: 0.2
+        ckpt_cls: "out/mid/models/I0_xgb_cls.json"
+        ckpt_reg: "out/mid/models/I0_xgb_reg.json"
+        meta: "out/mid/models/I0_xgb_meta.json"
+  - name: "105.WDC"           # 期货主力连续（示例：纸浆： 105.WDC--这个英文必须大写）
+    asset_class: "stock"
+    ensemble:
+      - type: "hybrid"
+        weight: 0.4
+        ckpt: "out/mid/models/105.WDC_hybrid_best.pt"
+        meta: "out/mid/models/105.WDC_hybrid_best_meta.json"
+      - type: "lstm"
+        weight: 0.4
+        ckpt: "out/mid/models/105.WDC_lstm_best.pt"
+        meta: "out/mid/models/105.WDC_lstm_best_meta.json"
+      - type: "xgboost"
+        weight: 0.2
+        ckpt_cls: "out/mid/models/105.WDC_xgb_cls.json"
+        ckpt_reg: "out/mid/models/105.WDC_xgb_reg.json"
+        meta: "out/mid/models/105.WDC_xgb_meta.json"
+  - name: "105.SNDK"           # 期货主力连续（示例：纸浆： 105.SNDK--这个英文必须大写）
+    asset_class: "stock"
+    ensemble:
+      - type: "hybrid"
+        weight: 0.4
+        ckpt: "out/mid/models/105.SNDK_hybrid_best.pt"
+        meta: "out/mid/models/105.SNDK_hybrid_best_meta.json"
+      - type: "lstm"
+        weight: 0.4
+        ckpt: "out/mid/models/105.SNDK_lstm_best.pt"
+        meta: "out/mid/models/105.SNDK_lstm_best_meta.json"
+      - type: "xgboost"
+        weight: 0.2
+        ckpt_cls: "out/mid/models/105.SNDK_xgb_cls.json"
+        ckpt_reg: "out/mid/models/105.SNDK_xgb_reg.json"
+        meta: "out/mid/models/105.SNDK_xgb_meta.json"
+  - name: "105.INTC"           # 期货主力连续（示例：纸浆： 105.INTC--这个英文必须大写）
+    asset_class: "stock"
+    ensemble:
+      - type: "hybrid"
+        weight: 0.4
+        ckpt: "out/mid/models/105.INTC_hybrid_best.pt"
+        meta: "out/mid/models/105.INTC_hybrid_best_meta.json"
+      - type: "lstm"
+        weight: 0.4
+        ckpt: "out/mid/models/105.INTC_lstm_best.pt"
+        meta: "out/mid/models/105.INTC_lstm_best_meta.json"
+      - type: "xgboost"
+        weight: 0.2
+        ckpt_cls: "out/mid/models/105.INTC_xgb_cls.json"
+        ckpt_reg: "out/mid/models/105.INTC_xgb_reg.json"
+        meta: "out/mid/models/105.INTC_xgb_meta.json"
+
+    

@@ -22,7 +22,7 @@ data:
     
     # 查询参数
     query:
-      tickers: [SP0]  # 可以查询多个品种
+      tickers: [SP0,SR0,I0]  # 可以查询多个品种
       start_date: "2025-08-01 00:00:00"
       end_date: "2025-10-13 23:59:59"
 
@@ -55,7 +55,7 @@ features:
   sma_windows: [5, 10, 20, 60]
   ema_windows: [5, 10, 20, 60]
   vol_windows: [10, 20, 60]
-  
+  hold_windows: [5, 10, 20, 60]
   bb_window: 20
   bb_k: 2.0
   parkinson_window: 20

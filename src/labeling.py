@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 def make_labels(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     df = df.copy()
@@ -28,7 +29,24 @@ def make_labels(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
     # 删除未来不可见样本
     df = df[g.cumcount(ascending=False) > H]  # drop last H rows per ticker
-    df.to_csv("/Users/LG/tutorial/aipriceforecaster/out/short/test.csv")
+    
+    # 1. 获取当前文件的绝对路径
+    # Path(__file__) -> /u1/aipriceforecasterv1/src/labeling.py
+    
+    # 2. 向上移动两级到项目根目录
+    # .parent -> /u1/aipriceforecasterv1/src/
+    # .parent.parent -> /u1/aipriceforecasterv1/
+    project_root = Path(__file__).parent.parent
+    
+    # 3. 构建完整的输出文件路径
+    output_path = project_root / 'out' / 'short' / 'test.csv'
+    
+    # 4. (安全检查) 确保父目录存在
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # 5. 保存文件
+    df.to_csv(output_path)
+    #df.to_csv("/Users/LG/tutorial/aipriceforecaster/out/short/test.csv")
     #df = df.dropna()
     df = df.dropna().reset_index(drop=True)
     return df

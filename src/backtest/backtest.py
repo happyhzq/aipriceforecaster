@@ -102,6 +102,19 @@ def main(cfg_path: str, pred_file: str):
     else:
         logger.warning("No trades generated in backtest")
 
+def load_preds(pred_file: str) -> pd.DataFrame:
+    dfp = pd.read_csv(
+        pred_file,
+        parse_dates=["timestamp"],
+        dtype={"ticker": "string"}
+    )
+    # 统一为 float64
+    dfp["pred"] = pd.to_numeric(dfp["pred"], errors="coerce").astype(np.float64)
+    if "pred_reg" in dfp.columns:
+        dfp["pred_reg"] = pd.to_numeric(dfp["pred_reg"], errors="coerce").astype(np.float64)
+    return dfp.sort_values("timestamp")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)

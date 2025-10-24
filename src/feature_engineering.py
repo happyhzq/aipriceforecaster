@@ -67,14 +67,20 @@ def compute_tech_indicators(df: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     def _pvol(h, l):
         r = np.log(h/l.replace(0, np.nan))
         return (r**2).rolling(p_w).mean()/(4*np.log(2))
-    df["pvol"] = g.apply(lambda x: _pvol(x["high"], x["low"])).reset_index(level=0, drop=True).T
+    df["pvol"] = g.apply(lambda x: _pvol(x["high"], x["low"]), include_groups=False).reset_index(level=0, drop=True).T
+    #df["pvol"] = g.apply(lambda x: _pvol(x["high"], x["low"])).reset_index(level=0, drop=True).T
     
     # 价量特征
     for w in [5, 10, 20, 60]:
         df[f"v_ma_{w}"] = g["volume"].apply(lambda x: x.rolling(w).mean())
         df[f"v_z_{w}"] = (df["volume"] - df[f"v_ma_{w}"]) / (df[f"v_ma_{w}"] + 1e-12)
-        df[f"h_ma_{w}"] = g["hold"].apply(lambda x: x.rolling(w).mean())
-        df[f"h_z_{w}"] = (df["hold"] - df[f"h_ma_{w}"]) / (df[f"h_ma_{w}"] + 1e-12)
+    
+    w = cfg["features"].get("hold_windows")
+    if w and len(w)> 0:
+        for w in cfg["features"].get("hold_windows"):
+            df[f"h_ma_{w}"] = g["hold"].apply(lambda x: x.rolling(w).mean())
+            df[f"h_z_{w}"] = (df["hold"] - df[f"h_ma_{w}"]) / (df[f"h_ma_{w}"] + 1e-12)
+
     # 滞后特征
     for lag in [1, 2, 3, 5, 10]:
         df[f"ret_lag_{lag}"] = g["logret"].apply(lambda x: x.shift(lag))

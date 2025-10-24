@@ -28,4 +28,13 @@ python-dotenv
 #data
 yfinance
 requests
-akshare
+
+akshare>=1.11.98
+APScheduler>=3.10.4
+jinja2>=3.1.3
+plotly>=5.24.1
+uvicorn[standard]>=0.30.0
+
+#mysql
+SQLAlchemy>=2.0.0
+pymysql>=1.1.0

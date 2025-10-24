@@ -13,7 +13,7 @@ data:
     
   # MySQL配置（当source_type=mysql时使用）
   mysql:
-    host: 
+    host: 192.168.0.204
     port: 3306
     user: root
     password:   # 建议使用环境变量
@@ -23,10 +23,10 @@ data:
     
     # 查询参数
     query:
-      tickers: [SP0]  # 可以查询多个品种
+      tickers: [SP0,SR0,I0]  # 可以查询多个品种
       freqs: [5]
       start_date: "2025-08-01 00:00:00"
-      end_date: "2025-10-20 23:59:59"
+      end_date: "2026-10-25 23:59:59"
 
 
     # 列名映射（如果数据库列名不同）
@@ -50,7 +50,7 @@ data:
   # 通用配置
   ohlcv_cols: [open, high, low, close, volume]
   freq: 5min
-  train_test_split_date: 2025-10-12 15:00:00 # 示例
+  train_test_split_date: 2025-10-16 15:00:00 # 示例
 
 features:
   rsi_periods: [14]
@@ -58,6 +58,7 @@ features:
   sma_windows: [5, 10, 20, 60]
   ema_windows: [5, 10, 20, 60]
   vol_windows: [10, 20, 60]
+  hold_windows: [5, 10, 20, 60]
   bb_window: 20
   bb_k: 2.0
   parkinson_window: 20
@@ -72,26 +73,40 @@ train:
   model_family: "ensemble" # lstm|transformer|xgboost|ensemble
   seed: 123
   batch_size: 256
-  epochs: 100
-  lr: 1e-3
+  epochs: 5
+  lr: 3e-4 #或1e-3
   optimizer: adamw
   l2: 1e-4
-  device: "cpu" #or cuda
+  device: "cpu" #or "cuda"
   ddp: false
   num_workers: 0
-  early_stop_patience: 99
+  early_stop_patience: 60
   class_weight: 1.0
   valid_metric: "acc" # acc|f1|auc|rmse|mae
   out_dir: "out/mid/SP0"
   optuna: false
   optuna_trails: 20
+  window: 64
+  xgb_rounds: 500
+
+  xgb:
+    num_rounds: 100              # 目标轮次
+    early_stopping_rounds: 1000     # 0 或省略 = 关闭早停；想保留就填 50/100 等
+    internal_valid: false        # 关闭内部“末 20%”验证；用全局 split_date 划分
+    valid_ratio: 0.2             # 仅在 internal_valid=true 时生效
+    verbose_every: 100            # 日志打印频率；想每轮都看就设 1
+
+  ensemble:
+      mode: "stacking"
+      beta: 0.7 #分类占70%， 回归占30%
+      trials: 6000
 
 inference:
   device: cpu
   preload: {}
-  watchlist: []
+  watchlist: [SP0,105.INTC]
   interval_seconds: 60
-  window: 32 
+  window: 64 
 
 
 backtest:
