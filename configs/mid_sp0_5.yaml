@@ -90,7 +90,7 @@ train:
   xgb_rounds: 500
 
   xgb:
-    num_rounds: 100              # 目标轮次
+    num_rounds: 1000              # 目标轮次
     early_stopping_rounds: 1000     # 0 或省略 = 关闭早停；想保留就填 50/100 等
     internal_valid: false        # 关闭内部“末 20%”验证；用全局 split_date 划分
     valid_ratio: 0.2             # 仅在 internal_valid=true 时生效

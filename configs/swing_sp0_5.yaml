@@ -1,4 +1,4 @@
-#长期（3–7 小时）：示例以 5m bar 为例，horizon_bars=234 即 1 周
+#长期（3–7 天）：示例以 5m bar 为例，horizon_bars=234 即 1 周
 
 data:
   
@@ -16,7 +16,7 @@ data:
     host: 192.168.0.204
     port: 3306
     user: root
-    password:   # 建议使用环境变量
+    password:  # 建议使用环境变量
     database: akshare_data
     charset: utf8mb4
     table_name: raw_futures_zh_minute_sina
@@ -84,7 +84,24 @@ train:
   class_weight: 1.0
   valid_metric: "acc" # acc|f1|auc|rmse|mae
   out_dir: "out/swing"
-
+  window: 64
+  xgb_rounds: 1000
+  xgb:
+    num_rounds: 1000              # 目标轮次
+    early_stopping_rounds: 1000     # 0 或省略 = 关闭早停；想保留就填 50/100 等
+    internal_valid: false        # 关闭内部“末 20%”验证；用全局 split_date 划分
+    valid_ratio: 0.2             # 仅在 internal_valid=true 时生效
+    verbose_every: 100            # 日志打印频率；想每轮都看就设 1
+  ensemble:
+      mode: "stacking"
+      beta: 0.7 #分类占70%， 回归占30%
+      trials: 6000
+inference:
+  device: cpu
+  preload: {}
+  watchlist: [SP0,105.INTC]
+  interval_seconds: 60
+  window: 64 
 backtest:
   side: "longshort" # longonly|longshort
   trans_cost_bp: 1.0 # 单边基点
