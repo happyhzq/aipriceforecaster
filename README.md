@@ -18,24 +18,26 @@ How to use:
    pip install -r requirements.txt
 
 2) Prepare sample data as following(check:examples/sample_data.csv):
-      *sample data: timestamp,ticker,open,high,low,close,volume
-
-   Or Prepare API keys (if you want live data): create .env or export env vars:
-   ALPHAVANTAGE_API_KEY=...
-   FINNHUB_API_KEY=...
-   TWELVEDATA_API_KEY=...
-   NASDAQ_DATA_LINK_API_KEY=...
-   AKShare
+      sample data: timestamp,ticker,open,high,low,close,volume
+      
+      Or Prepare API keys (if you want live data): create .env or export env vars:
+      ALPHAVANTAGE_API_KEY=...
+      FINNHUB_API_KEY=...
+      TWELVEDATA_API_KEY=...
+      NASDAQ_DATA_LINK_API_KEY=...
+      AKShare
 
 3) Build dataset (example uses included sample data):
    python src/pipeline/build_dataset.py --config configs/short_sp0.yaml
-   python src/pipeline/build_dataset.py --config configs/mid_sp0-5.yaml
-   python src/pipeline/build_dataset.py --config configs/swing_sp0_30.yaml
+   python src/pipeline/build_dataset.py --config configs/mid_sp0_5.yaml
+   python src/pipeline/build_dataset.py --config configs/swing_sp0_5.yaml
 
 4) Train a model:
    python src/training/train_short_term.py --config configs/short_sp0.yaml
    python src/training/train_mid_term.py   --config configs/mid_sp0_5.yaml
    python src/training/train_swing.py      --config configs/swing_sp0_30.yaml
+   python src/training/train_ensemble.py  --config configs/mid_sp0_5.yaml --ensemble-config configs/server.yaml --symbol SP0 --out out/mid/models --device cpu --ddp 0 --do-eval 1 --do-backtest 1
+   python src/training/train_ddp --config configs/mid_sp0_5.yaml --model hybrid --symbol SP0 --out out/mid/models --ddp 0 --device cpu
 
 5) Run backtest:
    python src/backtest/backtest.py --config configs/short.yaml --pred-file out/short/preds.csv
