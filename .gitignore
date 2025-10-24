@@ -21,3 +21,16 @@ out/
 
 # 忽略特定的文件
 futurepricegeter.ipynb
+src/backtest/backtest-old.py
+src/inference/realtime_server-old1.py
+src/inference/realtime_server-old.py
+src/inference/realtime_server-newstnotwork.py
+src/inference/realtime_server-10212257.py
+src/models/debug_xgb_dmatrix.py
+src/models/ensemble_old.py
+src/models/xgb_multitask-old.py
+src/pipeline/build_dataset-old.py
+src/training/train_ddp-new0workmac.py
+src/training/train_ddp-newnotwork1022.py
+src/training/train_ddp-old.py
+src/training/train_ensemble-old.py
